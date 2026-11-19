@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FAF Template Workshop · by Tokyto</title><link rel="stylesheet" href="style.css?v=1.5.0-web.2">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">▦</span><div><strong>Template Workshop <span class="author-credit">by Tokyto</span></strong><small>SUPREME COMMANDER · FORGED ALLIANCE</small></div></div>
+    <div class="file-actions">
+      <button id="prefsLocation" class="text-button" aria-haspopup="dialog">Find Game.prefs</button>
+      <button id="openPrefs" disabled>Open Game.prefs</button>
+      <button id="exportPrefs" class="primary" disabled>Export prefs copy</button>
+      <input id="prefsInput" type="file" accept=".prefs" hidden>
+    </div>
+  </header>
+  <div class="filebar"><span id="fileStatus" class="status-dot"></span><span id="filePath">Loading the Workshop…</span><span id="appVersion" class="app-version" title="Web edition based on Workshop v1.5.0">v1.5.0 Web</span><span id="dirtyLabel" class="badge"></span></div>
+  <main inert>
+    <aside class="templates-pane pane">
+      <div class="pane-heading"><span class="eyebrow">YOUR WORKSPACE</span><span id="templateTotal" class="count"></span></div>
+      <label class="field-label" for="profileSelect">Game profile</label><select id="profileSelect"></select>
+      <div class="segmented"><button id="buildingTab" class="active">Layouts</button><button id="queueTab">Factory queues</button></div>
+      <div class="list-actions"><button id="newTemplate" class="primary subtle">+ New</button><details id="transferMenu" class="transfer-menu"><summary title="Import, export or share templates">Import / Export ▾</summary><div class="transfer-menu-items"><button id="importLua">Import Lua…</button><button id="exportLua">Export Lua…</button><button id="shareTemplate" disabled>Share template link…</button></div></details></div>
+      <div class="template-filters">
+        <div id="templateFactionFilters" class="faction-filter" aria-label="Template faction filters"></div>
+        <div class="template-filter-options"><label id="limitedFilter"><input id="factionSpecific" type="checkbox"> Faction-specific only</label><button id="allTemplateFactions" class="text-button">All</button></div>
+      </div>
+      <div class="template-order"><span>Saved order</span><button id="templateFirst" title="Move selected template to the top" aria-label="Move selected template to the top">⇈</button><button id="templateUp" title="Move selected template up" aria-label="Move selected template up">↑</button><button id="templateDown" title="Move selected template down" aria-label="Move selected template down">↓</button></div>
+      <div id="templates" class="template-list"></div>
+      <div class="pane-footer"><span id="factionHelp"></span><button id="helpButton" class="text-button">How to use this editor ↗</button><span id="catalogInfo" class="muted"></span></div>
+    </aside>
+    <section class="editor-pane">
+      <div class="template-heading"><button id="templateIcon" class="template-icon" title="Change template icon" aria-label="Change template icon"></button><div><span id="typeLabel" class="eyebrow">BUILDING LAYOUT</span><input id="templateName" aria-label="Template name" placeholder="Give your template a name"><span id="templateSummary" class="muted"></span><div id="templateCompatibility" class="compatibility-strip"></div></div><div class="heading-actions"><button id="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button><button id="redo" title="Redo (Ctrl+Y)" aria-label="Redo">↷</button><button id="duplicateTemplate" title="Duplicate this template">Duplicate</button><button id="removeTemplate" class="danger quiet">Delete</button></div></div>
+
+      <div id="layoutToolbar" class="toolbar builder-toolbar">
+        <div class="tool-group tool-palette"><button data-tool="place" class="active" title="Click the grid to place the selected unit">Place</button><button data-tool="select" title="Select and drag a building">Move</button><button data-tool="erase" title="Click a building to remove it">Erase</button><button data-tool="anchor" title="Choose the placement cursor and symmetry center">Anchor</button></div>
+        <label class="symmetry-control" title="Places mirrored copies around the orange cursor. Existing buildings are not changed.">Symmetry <select id="placementSymmetry" aria-label="Placement symmetry"><option value="none">Off</option><option value="x">X · left / right</option><option value="z">Z · top / bottom</option><option value="both">X + Z · four-way</option></select></label>
+        <div class="tool-group transform-controls"><button id="center" title="Center the placement cursor on the complete layout">Center</button><button id="rotate" title="Rotate 90° around the placement cursor">Rotate</button><button id="mirror" title="Mirror positions along the chosen coordinate">Mirror</button><select id="mirrorAxis" aria-label="Mirror axis" title="X: left / right. Z: top / bottom."><option value="x">X ↔</option><option value="z">Z ↕</option></select><label class="keep-original" title="Keep existing buildings and append rotated or mirrored copies. Exact duplicates are skipped."><input id="keepOriginal" type="checkbox"> Keep original</label></div>
+      </div>
+      <div id="canvasWrap" class="canvas-wrap">
+        <div class="canvas-hud">
+          <div id="gridOptions"><div class="zoom-controls"><button id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button><span id="zoomLevel">100%</span><button id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button></div><button id="fitView" class="quiet" title="Fit layout and visible shields">Fit</button><label title="Placement snapping">Snap <select id="snap"><option value="1">1 cell</option><option value="0.5">½ cell</option></select></label></div>
+          <div id="overlayBar" class="overlaybar"><label title="Show shield coverage"><input id="showShields" type="checkbox" checked> Shields</label><label title="Show live economy values and artillery intervals"><input id="showStats" type="checkbox" checked> Economy &amp; arty</label><label title="Highlights shared edges that grant storage/generator adjacency bonuses. This changes only the overlay; calculations stay active."><input id="showAdjacency" type="checkbox" checked> Adjacency bonuses</label></div>
+        </div>
+        <canvas id="grid" aria-label="Template layout grid"></canvas><div class="canvas-legend"><span class="origin-symbol">+</span> Placement cursor <span class="legend-dot"></span> Footprint <span id="symmetryHint"></span><span id="canvasCoords"></span></div><div id="emptyGrid" class="empty-grid"><span class="empty-icon">▦</span><strong>Your base, one click away.</strong><p>Choose a structure on the right, then click the grid.<br>Open Game.prefs to edit your existing layouts.</p></div>
+      </div>
+      <section id="templateTotals" class="template-totals hidden" aria-label="Whole template costs and income">
+        <details id="economyDetails">
+          <summary id="economySummary" title="Expand production, upkeep and cost details">
+            <span class="economy-summary-title">Economy</span>
+            <span class="compact-stat mass"><small>Mass cost</small><strong id="compactMassCost">0 M</strong></span>
+            <span class="compact-stat energy"><small>Energy cost</small><strong id="compactEnergyCost">0 E</strong></span>
+            <span class="compact-stat mass"><small id="compactMassRateLabel">Net mass /s</small><strong id="compactNetMass">+0 M/s</strong></span>
+            <span class="compact-stat energy"><small id="compactEnergyRateLabel">Net energy /s</small><strong id="compactNetEnergy">+0 E/s</strong></span>
+            <span class="economy-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="economy-expanded">
+        <div id="totalsScope" class="eyebrow">WHOLE LAYOUT</div>
+        <div class="totals-cards">
+          <div class="total-card mass"><small>TOTAL MASS COST</small><strong id="totalMassCost">0 M</strong><span class="total-cost-note">All buildings</span></div>
+          <div class="total-card energy"><small>TOTAL ENERGY COST</small><strong id="totalEnergyCost">0 E</strong><span class="total-cost-note">All buildings</span></div>
+          <div id="massIncomeCard" class="total-card mass"><small id="massIncomeLabel">NET MASS / SECOND</small><strong id="totalNetMass">0 M/s</strong><span class="income-breakdown">Production <b id="totalMassProduction">+0</b></span><span class="income-breakdown">Upkeep <b id="totalMassUpkeep">−0</b></span></div>
+          <div id="energyIncomeCard" class="total-card energy"><small id="energyIncomeLabel">NET ENERGY / SECOND</small><strong id="totalNetEnergy">0 E/s</strong><span class="income-breakdown">Production <b id="totalEnergyProduction">+0</b></span><span class="income-breakdown">Upkeep <b id="totalEnergyUpkeep">−0</b></span></div>
+        </div>
+        <div id="queueEconomyControls" class="queue-economy-controls hidden"><label>Producing factory <select id="queueFactory"></select></label><label>Assist BP <input id="queueAssist" type="number" min="0" max="100000" step="1" value="0"></label><span>Build time <strong id="queueDuration">—</strong></span></div>
+        <p id="totalsNote" class="totals-note"></p>
+                </div>
+        </details>
+      </section>
+      <div id="queueWrap" class="queue-wrap hidden"><div class="queue-caption"><h2>Production order</h2><p>Click a unit in the catalog to append it. Each row keeps its place in the build order.</p></div><div id="queueRows"></div></div>
+      <div id="selectionPanel" class="selection-panel"><div id="selectedDetails" class="selected-details"></div><div id="positionControls" class="position-controls hidden"><label>X <input id="positionX" type="number" step="0.5"></label><label>Z <input id="positionZ" type="number" step="0.5"></label><button id="earlier">Build earlier</button><button id="later">Build later</button><button id="deleteBuilding" class="danger quiet">Remove</button></div></div>
+      <div id="liveDetails" class="live-details hidden"></div>
+      <div id="shieldControls" class="shield-controls hidden"><label for="shieldPreview">Shield coverage preview</label><select id="shieldPreview"></select><span id="shieldPreviewNote"></span></div>
+      <div id="validation" class="validation"></div><button id="repairUpgrades" class="subtle hidden">Replace upgrade-only buildings</button>
+      <div class="bottom-hint" id="bottomHint">Wheel to zoom · Middle-drag / Space-drag to pan · Right-click to remove · Ctrl+Z to undo</div>
+    </section>
+    <aside class="units-pane pane">
+      <div class="pane-heading"><span class="eyebrow">UNIT CATALOG</span><span id="unitCount" class="count"></span></div>
+      <div class="faction-filter" id="factionButtons"><button data-faction="UEF" title="UEF">UEF</button><button data-faction="Aeon" title="Aeon">Aeon</button><button data-faction="Cybran" class="active" title="Cybran">Cybran</button><button data-faction="Seraphim" title="Seraphim">Sera</button></div>
+      <div class="conversion"><button id="convertFaction" class="text-button">Convert layout to Cybran ↗</button></div>
+      <input id="unitSearch" class="search" placeholder="Search name, role or ID…" aria-label="Search units">
+      <div class="unit-filters"><select id="techFilter" aria-label="Technology filter"><option value="0">All tech</option><option value="1">Tech 1</option><option value="2">Tech 2</option><option value="3">Tech 3</option><option value="4">Experimental</option></select><select id="roleFilter" aria-label="Role filter"><option value="all">All structures</option><option value="economy">Economy</option><option value="defense">Defense</option><option value="factory">Factories</option><option value="intel">Intel</option><option value="other">Other</option></select></div>
+      <div id="units" class="unit-list"></div>
+      <div id="unitDetails" class="unit-details"><span class="muted">Select a unit to see its size and cost.</span></div>
+      <div class="pane-footer"><a href="https://faforever.github.io/etfreeman-db/" target="_blank" rel="noreferrer">FAF Unit Database ↗</a><a href="ATTRIBUTIONS.md" target="_blank" rel="noreferrer">Data and artwork credits</a></div>
+    </aside>
+  </main>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button id="closeModal" class="quiet" aria-label="Close dialog">✕</button></div><div id="modalBody"></div><div id="modalActions" class="modal-actions"></div></dialog>
+  <template id="prefsLocationContent">
+    <p>In the <strong>Open Game.prefs</strong> file picker, paste this path into the address bar, press Enter, and select <strong>Game.prefs</strong>.</p>
+    <label for="prefsFolder">Default folder on Windows</label>
+    <input id="prefsFolder" class="copy-field" type="text" value="%LOCALAPPDATA%\Gas Powered Games\Supreme Commander Forged Alliance" readonly>
+    <p>After exporting a copy, close the game and keep a backup of the original before replacing <strong>Game.prefs</strong> in this folder.</p>
+    <div class="muted" role="status"></div>
+  </template>
+  <script type="module" src="app.js?v=1.5.0-web.2"></script>
+</body>
+</html>
